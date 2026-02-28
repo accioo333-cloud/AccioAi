@@ -34,7 +34,6 @@ export async function POST(request: NextRequest) {
         id: user.id,
         email: user.email!,
         full_name: full_name.trim(),
-        avatar_url: user.user_metadata?.avatar_url || null,
         onboarding_completed: true,
         updated_at: new Date().toISOString(),
       })
