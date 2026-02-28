@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase/client";
+import SwipeCard from "./SwipeCard";
 
 interface ContentCard {
   id: string;
@@ -15,6 +16,7 @@ interface ContentCard {
 
 export default function FeedClient() {
   const [cards, setCards] = useState<ContentCard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -37,6 +39,38 @@ export default function FeedClient() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSwipe = async (cardId: string, direction: "left" | "right") => {
+    const interactionType = direction === "right" ? "like" : "view";
+
+    // Record interaction
+    await fetch("/api/interactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        card_id: cardId,
+        interaction_type: interactionType,
+      }),
+    });
+
+    // Move to next card
+    setCurrentIndex((prev) => prev + 1);
+  };
+
+  const handleAction = async (cardId: string, action: "bookmark" | "complete") => {
+    // Record interaction
+    await fetch("/api/interactions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        card_id: cardId,
+        interaction_type: action,
+      }),
+    });
+
+    // Move to next card
+    setCurrentIndex((prev) => prev + 1);
   };
 
   const handleSignOut = async () => {
@@ -68,11 +102,19 @@ export default function FeedClient() {
     );
   }
 
+  const currentCard = cards[currentIndex];
+  const hasMoreCards = currentIndex < cards.length;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">AccioAI</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">AccioAI</h1>
+            <p className="text-xs text-gray-500">
+              {currentIndex} of {cards.length} cards
+            </p>
+          </div>
           <button
             onClick={handleSignOut}
             className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700"
@@ -82,42 +124,42 @@ export default function FeedClient() {
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-4 py-6">
-        {cards.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">No content available yet.</p>
-            <p className="text-gray-500 text-sm mt-2">
-              Content will appear here once the automation runs.
-            </p>
+      <main className="relative h-[calc(100vh-80px)]">
+        {!hasMoreCards ? (
+          <div className="absolute inset-0 flex items-center justify-center p-4">
+            <div className="text-center space-y-4">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-2xl font-bold text-gray-900">You&apos;re all caught up!</h2>
+              <p className="text-gray-600">New content will be available tomorrow.</p>
+              <button
+                onClick={() => {
+                  setCurrentIndex(0);
+                  fetchFeed();
+                }}
+                className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Refresh Feed
+              </button>
+            </div>
           </div>
         ) : (
-          <div className="space-y-4">
-            {cards.map((card) => (
-              <div
-                key={card.id}
-                className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <h2 className="text-xl font-semibold text-gray-900 flex-1">
-                    {card.title}
-                  </h2>
-                  <span className="ml-4 px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
-                    {card.category}
-                  </span>
-                </div>
-                
-                <div className="prose prose-sm max-w-none text-gray-700 mb-4">
-                  {card.content}
-                </div>
-
-                <div className="flex items-center gap-4 text-sm text-gray-500">
-                  <span className="capitalize">{card.difficulty_level}</span>
-                  <span>•</span>
-                  <span>{card.estimated_time_minutes} min read</span>
-                </div>
+          <>
+            {currentCard && (
+              <SwipeCard
+                key={currentCard.id}
+                card={currentCard}
+                onSwipe={handleSwipe}
+                onAction={handleAction}
+              />
+            )}
+            
+            {/* Swipe Instructions */}
+            {currentIndex === 0 && (
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm">
+                👈 Swipe left to skip • Swipe right to like 👉
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </main>
     </div>
