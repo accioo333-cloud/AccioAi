@@ -3,6 +3,7 @@ import { getProvider } from "@/lib/llm";
 import { AppError } from "@/lib/errors/AppError";
 import { ChatResponse } from "@/types/api";
 import { checkRateLimit } from "@/lib/middleware/rateLimiter";
+import { requireAuth } from "@/lib/middleware/auth";
 import { logInfo, logError } from "@/lib/logger";
 
 const TIMEOUT_MS = 30000;
@@ -13,6 +14,10 @@ export async function POST(request: NextRequest) {
   const startTime = Date.now();
 
   logInfo("Request started", { requestId });
+
+  // Authentication check
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
 
   // Rate limiting check
   const rateLimitResponse = checkRateLimit(request);

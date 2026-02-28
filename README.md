@@ -10,9 +10,15 @@ GROQ_API_KEY=your_groq_api_key_here
 
 # Optional: LLM Model (defaults to llama-3.1-8b-instant)
 LLM_MODEL=llama-3.1-8b-instant
+
+# Required: Supabase
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 Get your Groq API key from [https://console.groq.com](https://console.groq.com)
+
+Get your Supabase credentials from [https://supabase.com/dashboard](https://supabase.com/dashboard)
 
 Available models:
 - `llama-3.1-8b-instant` (default)
