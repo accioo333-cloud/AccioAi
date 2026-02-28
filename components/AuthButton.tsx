@@ -12,6 +12,7 @@ export default function AuthButton() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
 
   useEffect(() => {
     // Check current session
@@ -35,12 +36,21 @@ export default function AuthButton() {
 
     try {
       if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/confirm`,
+          },
         });
         if (error) throw error;
-        // Redirect will happen via auth state change
+        
+        // Show confirmation message if email confirmation is enabled
+        if (data.user && !data.session) {
+          setShowConfirmation(true);
+          return;
+        }
+        
         window.location.href = "/";
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -85,49 +95,76 @@ export default function AuthButton() {
   // Show Email/Password form if not authenticated
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-      <input
-        type="email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        placeholder="Email"
-        required
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
-      
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Password"
-        required
-        minLength={6}
-        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-      />
+      {showConfirmation ? (
+        <div className="text-center space-y-4 p-6 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="text-4xl">📧</div>
+          <h3 className="font-semibold text-gray-900">Check your email</h3>
+          <p className="text-sm text-gray-600">
+            We sent a confirmation link to <strong>{email}</strong>
+          </p>
+          <p className="text-xs text-gray-500">
+            Click the link in the email to complete your signup.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setShowConfirmation(false);
+              setEmail("");
+              setPassword("");
+            }}
+            className="text-sm text-blue-600 hover:text-blue-700"
+          >
+            Back to sign in
+          </button>
+        </div>
+      ) : (
+        <>
+          <input
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="Email"
+            required
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+          
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Password"
+            required
+            minLength={6}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
 
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
+          {error && (
+            <p className="text-sm text-red-600">{error}</p>
+          )}
+
+          <div className="flex gap-3">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg disabled:bg-gray-400"
+            >
+              {submitting ? "..." : isSignUp ? "Create Account" : "Sign In"}
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError("");
+                setShowConfirmation(false);
+              }}
+              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+            >
+              {isSignUp ? "Sign In" : "Sign Up"}
+            </button>
+          </div>
+        </>
       )}
-
-      <div className="flex gap-3">
-        <button
-          type="submit"
-          disabled={submitting}
-          className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg disabled:bg-gray-400"
-        >
-          {submitting ? "..." : isSignUp ? "Create Account" : "Sign In"}
-        </button>
-        
-        <button
-          type="button"
-          onClick={() => {
-            setIsSignUp(!isSignUp);
-            setError("");
-          }}
-          className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
-        >
-          {isSignUp ? "Sign In" : "Sign Up"}
-        </button>
-      </div>
     </form>
   );
 }
