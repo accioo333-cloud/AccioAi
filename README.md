@@ -1,5 +1,25 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Environment Variables
+
+Create a `.env.local` file in the root directory with the following variables:
+
+```bash
+# Required: Groq API Key
+GROQ_API_KEY=your_groq_api_key_here
+
+# Optional: LLM Model (defaults to llama-3.1-8b-instant)
+LLM_MODEL=llama-3.1-8b-instant
+```
+
+Get your Groq API key from [https://console.groq.com](https://console.groq.com)
+
+Available models:
+- `llama-3.1-8b-instant` (default)
+- `llama-3.1-70b-versatile`
+- `mixtral-8x7b-32768`
+- See [Groq documentation](https://console.groq.com/docs/models) for more
+
 ## Getting Started
 
 First, run the development server:

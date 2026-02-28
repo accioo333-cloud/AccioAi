@@ -1,23 +1,29 @@
 import { LLMProvider } from "./types";
 
 const MAX_RESPONSE_SIZE = 10000; // 10KB limit
+const GROQ_BASE_URL = "https://api.groq.com/openai/v1";
+const DEFAULT_MODEL = "llama-3.1-8b-instant";
 
 export class OpenAIProvider implements LLMProvider {
   private apiKey: string;
+  private baseURL: string;
+  private model: string;
 
-  constructor(apiKey: string) {
+  constructor(apiKey: string, baseURL: string = GROQ_BASE_URL, model?: string) {
     this.apiKey = apiKey;
+    this.baseURL = baseURL;
+    this.model = model || process.env.LLM_MODEL || DEFAULT_MODEL;
   }
 
   async generateResponse(prompt: string): Promise<string> {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: this.model,
         messages: [{ role: "user", content: prompt }],
         max_tokens: 1000,
       }),
@@ -42,14 +48,14 @@ export class OpenAIProvider implements LLMProvider {
   }
 
   async *generateStreamingResponse(prompt: string, signal?: AbortSignal): AsyncGenerator<string> {
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+    const response = await fetch(`${this.baseURL}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${this.apiKey}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
+        model: this.model,
         messages: [{ role: "user", content: prompt }],
         stream: true,
         max_tokens: 1000,
