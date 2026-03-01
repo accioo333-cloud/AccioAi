@@ -14,9 +14,11 @@ export default async function Home() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
         <script dangerouslySetInnerHTML={{
           __html: `
-            // Handle OAuth redirect with hash fragment
-            if (window.location.hash && window.location.hash.includes('access_token')) {
-              window.location.href = '/auth/callback' + window.location.hash;
+            // Handle OAuth redirect with hash fragment (only once)
+            if (window.location.hash && window.location.hash.includes('access_token') && !sessionStorage.getItem('oauth_processed')) {
+              sessionStorage.setItem('oauth_processed', '1');
+              // Let Supabase client handle the session from hash
+              setTimeout(() => window.location.href = '/', 100);
             }
           `
         }} />
