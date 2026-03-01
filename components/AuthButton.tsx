@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { signIn, signUp, signOut } from "@/app/actions/auth";
 import type { User } from "@supabase/supabase-js";
 
 export default function AuthButton() {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -38,34 +37,26 @@ export default function AuthButton() {
 
     try {
       if (isSignUp) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/confirm`,
-          },
-        });
-        if (error) throw error;
+        const result = await signUp(email, password);
         
-        // Show confirmation message if email confirmation is enabled
-        if (data.user && !data.session) {
-          setShowConfirmation(true);
-          return;
+        if (result?.error) {
+          throw new Error(result.error);
         }
         
-        router.push("/");
+        if (result?.requiresConfirmation) {
+          setShowConfirmation(true);
+          setSubmitting(false);
+          return;
+        }
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
-        // Force full page reload to refresh server session
-        window.location.href = "/auth/success";
+        const result = await signIn(email, password);
+        
+        if (result?.error) {
+          throw new Error(result.error);
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
       setSubmitting(false);
     }
   };
@@ -89,8 +80,7 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    window.location.href = "/";
+    await signOut();
   };
 
   if (loading) {
