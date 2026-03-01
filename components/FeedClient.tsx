@@ -75,30 +75,46 @@ export default function FeedClient() {
   const handleSwipe = async (cardId: string, direction: "left" | "right") => {
     const interactionType = direction === "right" ? "like" : "view";
 
-    // Record interaction
-    await fetch("/api/interactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        card_id: cardId,
-        interaction_type: interactionType,
-      }),
-    });
+    try {
+      // Record interaction and wait for response
+      const res = await fetch("/api/interactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          card_id: cardId,
+          interaction_type: interactionType,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to record interaction:", await res.text());
+      }
+    } catch (error) {
+      console.error("Error recording interaction:", error);
+    }
 
     // Move to next card
     setCurrentIndex((prev) => prev + 1);
   };
 
   const handleAction = async (cardId: string, action: "bookmark" | "complete") => {
-    // Record interaction
-    await fetch("/api/interactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        card_id: cardId,
-        interaction_type: action,
-      }),
-    });
+    try {
+      // Record interaction and wait for response
+      const res = await fetch("/api/interactions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          card_id: cardId,
+          interaction_type: action,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to record action:", await res.text());
+      }
+    } catch (error) {
+      console.error("Error recording action:", error);
+    }
 
     // Move to next card
     setCurrentIndex((prev) => prev + 1);
