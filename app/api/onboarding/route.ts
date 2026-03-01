@@ -32,7 +32,6 @@ export async function POST(request: NextRequest) {
       .from("user_profiles")
       .upsert({
         id: user.id,
-        email: user.email!,
         full_name: full_name.trim(),
         onboarding_completed: true,
         updated_at: new Date().toISOString(),

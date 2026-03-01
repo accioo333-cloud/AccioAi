@@ -1,62 +1,241 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AccioAI
 
-## Environment Variables
+An AI-powered intelligence feed that delivers personalized, high-quality content through a swipe-based interface.
 
-Create a `.env.local` file in the root directory with the following variables:
+## What It Does
+
+1. **Fetches** content from RSS sources daily (automated)
+2. **Processes** with LLMs (Groq) to generate summaries, insights, and action takeaways
+3. **Delivers** via swipe-based feed (Tinder-style UX)
+4. **Tracks** user interactions for personalization
+5. **Runs** fully automated with daily cron jobs
+
+## Tech Stack
+
+- **Framework**: Next.js 15 (App Router)
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth (Email/Password)
+- **LLM**: Groq (Llama 3.1)
+- **Deployment**: Vercel
+- **Automation**: Vercel Cron
+
+## Setup
+
+### 1. Environment Variables
+
+Create `.env.local`:
 
 ```bash
-# Required: Groq API Key
-GROQ_API_KEY=your_groq_api_key_here
-
-# Optional: LLM Model (defaults to llama-3.1-8b-instant)
+# Groq API (Required)
+GROQ_API_KEY=your_groq_api_key
 LLM_MODEL=llama-3.1-8b-instant
 
-# Required: Supabase
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+# Supabase (Required)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# Cron Secret (Required for production)
+CRON_SECRET=your_random_secret
 ```
 
-Get your Groq API key from [https://console.groq.com](https://console.groq.com)
+**Get API Keys:**
+- Groq: https://console.groq.com
+- Supabase: https://supabase.com/dashboard
 
-Get your Supabase credentials from [https://supabase.com/dashboard](https://supabase.com/dashboard)
+### 2. Database Setup
 
-Available models:
-- `llama-3.1-8b-instant` (default)
-- `llama-3.1-70b-versatile`
-- `mixtral-8x7b-32768`
-- See [Groq documentation](https://console.groq.com/docs/models) for more
+Run this SQL in Supabase SQL Editor:
 
-## Getting Started
+```sql
+-- User profiles
+CREATE TABLE user_profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  email TEXT,
+  full_name TEXT,
+  avatar_url TEXT,
+  onboarding_completed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
 
-First, run the development server:
+-- Content sources (RSS feeds)
+CREATE TABLE content_sources (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  source_url TEXT NOT NULL,
+  source_type TEXT DEFAULT 'rss',
+  category TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  last_fetched_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Raw content (unprocessed)
+CREATE TABLE raw_content (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_id UUID REFERENCES content_sources(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  content TEXT,
+  url TEXT UNIQUE,
+  published_at TIMESTAMPTZ,
+  processed BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Content cards (processed)
+CREATE TABLE content_cards (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  category TEXT,
+  difficulty_level TEXT,
+  estimated_time_minutes INTEGER,
+  tags TEXT[],
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- User interactions
+CREATE TABLE user_interactions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  card_id UUID REFERENCES content_cards(id) ON DELETE CASCADE,
+  interaction_type TEXT NOT NULL, -- 'view', 'like', 'bookmark', 'complete'
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Automation runs
+CREATE TABLE automation_runs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  status TEXT NOT NULL, -- 'running', 'completed', 'failed'
+  started_at TIMESTAMPTZ,
+  completed_at TIMESTAMPTZ,
+  items_fetched INTEGER DEFAULT 0,
+  items_processed INTEGER DEFAULT 0,
+  error_message TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Enable RLS
+ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_interactions ENABLE ROW LEVEL SECURITY;
+
+-- RLS Policies
+CREATE POLICY "Users can view own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can update own profile" ON user_profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Users can insert own profile" ON user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+
+CREATE POLICY "Users can view own interactions" ON user_interactions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own interactions" ON user_interactions FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Indexes
+CREATE INDEX idx_content_cards_created ON content_cards(created_at DESC);
+CREATE INDEX idx_user_interactions_user ON user_interactions(user_id);
+CREATE INDEX idx_user_interactions_card ON user_interactions(card_id);
+CREATE INDEX idx_raw_content_processed ON raw_content(processed);
+```
+
+### 3. Add RSS Sources
+
+```sql
+INSERT INTO content_sources (name, source_url, category) VALUES
+  ('TechCrunch', 'https://techcrunch.com/feed/', 'technology'),
+  ('Hacker News', 'https://hnrss.org/frontpage', 'technology');
+```
+
+### 4. Supabase Auth Configuration
+
+**Dashboard → Authentication → Providers → Email:**
+- Enable Email provider
+- Disable "Confirm email" (for development)
+
+**For production with email confirmation:**
+- Site URL: `https://yourdomain.com`
+- Redirect URLs: `https://yourdomain.com/auth/confirm`
+
+### 5. Install & Run
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Vercel
 
-## Learn More
+1. Push to GitHub
+2. Import to Vercel
+3. Add environment variables
+4. Deploy
 
-To learn more about Next.js, take a look at the following resources:
+**Cron job runs daily at midnight** (configured in `vercel.json`)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Manual Automation Trigger
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+curl -X POST https://yourdomain.com/api/automation/run \
+  -H "x-cron-secret: your_cron_secret"
+```
 
-## Deploy on Vercel
+## Project Structure
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+app/
+├── page.tsx                    # Landing page (session routing)
+├── onboarding/page.tsx         # User onboarding
+├── feed/page.tsx               # Swipe feed
+├── auth/confirm/route.ts       # Email confirmation
+└── api/
+    ├── feed/route.ts           # Get content cards
+    ├── interactions/route.ts   # Track swipes/actions
+    ├── onboarding/route.ts     # Complete onboarding
+    └── automation/run/route.ts # Daily automation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+components/
+├── AuthButton.tsx              # Email/password auth
+├── OnboardingForm.tsx          # Name collection
+├── FeedClient.tsx              # Swipe stack
+└── SwipeCard.tsx               # Individual card
+
+lib/
+├── supabase/                   # Supabase clients
+├── llm/                        # Groq provider
+├── automation/                 # RSS fetcher & processor
+└── middleware/                 # Auth middleware
+```
+
+## User Flow
+
+1. **Sign up** with email/password
+2. **Complete onboarding** (enter name)
+3. **Swipe feed**:
+   - Swipe right = like
+   - Swipe left = skip
+   - Read Later = bookmark
+   - Done = complete
+4. **Daily automation** fetches new content
+
+## Database Schema
+
+- `user_profiles` - User data
+- `content_sources` - RSS feeds
+- `raw_content` - Unprocessed articles
+- `content_cards` - AI-processed cards
+- `user_interactions` - Swipe tracking
+- `automation_runs` - Job logs
+
+## Development
+
+```bash
+# Type check
+npm run build
+
+# Lint
+npm run lint
+```
+
+## License
+
+MIT
