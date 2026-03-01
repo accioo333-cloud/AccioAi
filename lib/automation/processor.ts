@@ -11,29 +11,26 @@ export async function processContentWithLLM(
   title: string,
   content: string
 ): Promise<ProcessedContent> {
-  const prompt = `Summarize this article in a clear, engaging way.
+  const prompt = `You must respond in the exact format shown below. Do not add any other text.
 
-Title: ${title}
+Article Title: ${title}
 
-Content: ${content.slice(0, 2000)}
+Article Content: ${content.slice(0, 2000)}
 
-Provide:
-1. SUMMARY: 2-3 sentences (max 60 words)
-2. INSIGHTS: 3 bullet points with specific details
-3. ACTION: One thing the reader can do
-
-Format your response EXACTLY like this:
+Respond ONLY in this format (copy the structure exactly):
 
 SUMMARY:
-[Your 2-3 sentence summary here]
+Write 2-3 sentences summarizing the article (max 60 words)
 
 INSIGHTS:
-- [First specific insight]
-- [Second specific insight]
-- [Third specific insight]
+- First key insight from the article
+- Second key insight from the article  
+- Third key insight from the article
 
 ACTION:
-[One actionable takeaway]`;
+One actionable takeaway for the reader
+
+Now provide your response following this exact format:`;
 
   try {
     const response = await generateResponse(prompt);
@@ -44,17 +41,20 @@ ACTION:
     const actionMatch = response.match(/ACTION:\s*([\s\S]*?)$/i);
     
     let summary = summaryMatch?.[1]?.trim() || "";
-    summary = summary.replace(/\[.*?\]/g, '').trim();
+    // Remove any instruction text
+    summary = summary.replace(/Write.*?words\)?/gi, '').trim();
+    summary = summary.split('\n')[0].trim(); // Take first line only
     
     const insightsText = insightsMatch?.[1] || "";
     const insights = insightsText
-      .split(/[\n\-•]/)
-      .map(i => i.trim())
-      .filter(i => i.length > 15 && !i.toLowerCase().includes('['))
+      .split(/[\n]/)
+      .map(i => i.replace(/^[\-•\*]\s*/, '').trim())
+      .filter(i => i.length > 15 && !i.toLowerCase().includes('insight from'))
       .slice(0, 3);
     
     let action_takeaway = actionMatch?.[1]?.trim() || "";
-    action_takeaway = action_takeaway.replace(/\[.*?\]/g, '').trim();
+    action_takeaway = action_takeaway.replace(/One.*?reader/gi, '').trim();
+    action_takeaway = action_takeaway.split('\n')[0].trim(); // Take first line only
     
     // Validate we got real content
     if (!summary || summary.length < 20 || insights.length === 0) {
