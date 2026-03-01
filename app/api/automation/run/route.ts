@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
     // Get all active categories
     const categories = ['technology', 'business', 'science', 'ai_ml', 'design', 'startups', 'finance', 'health'];
     
-    // Process evenly across categories (3 items per category, max 24 total)
-    const itemsPerCategory = 3;
+    // Process evenly across categories (5 items per category, max 40 total)
+    const itemsPerCategory = 5;
     const itemsToProcess: any[] = [];
     
     for (const category of categories) {
