@@ -13,13 +13,15 @@ export async function createClient() {
           return cookieStore.getAll();
         },
         setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch {
-            // Ignore cookie setting errors in Server Components
-          }
+          // Only set cookies if we're in a Route Handler or Server Action
+          // In Server Components, this will be a no-op
+          cookiesToSet.forEach(({ name, value, options }) => {
+            try {
+              cookieStore.set(name, value, options);
+            } catch (error) {
+              // Server Component - can't set cookies, that's ok
+            }
+          });
         },
       },
     }

@@ -61,7 +61,7 @@ export default function AuthButton() {
         });
         if (error) throw error;
         // Force full page reload to refresh server session
-        window.location.href = "/";
+        window.location.href = "/auth/success";
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
