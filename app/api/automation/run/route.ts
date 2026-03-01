@@ -126,23 +126,46 @@ export async function POST(request: NextRequest) {
       .update({ items_fetched: totalFetched })
       .eq("id", runId);
 
-    // Process unprocessed content
-    const { data: unprocessed, error: unprocessedError } = await supabase
-      .from("raw_content")
-      .select("*, content_sources(category)")
-      .eq("processed", false)
-      .limit(20); // Process max 20 items per run
-
-    if (unprocessedError) {
-      throw new Error(`Failed to fetch unprocessed content: ${unprocessedError.message}`);
+    // Get all active categories
+    const categories = ['technology', 'business', 'science', 'ai_ml', 'design', 'startups', 'finance', 'health'];
+    
+    // Process evenly across categories (3 items per category, max 24 total)
+    const itemsPerCategory = 3;
+    const itemsToProcess: any[] = [];
+    
+    for (const category of categories) {
+      const { data: categoryItems } = await supabase
+        .from("raw_content")
+        .select("*, content_sources(category)")
+        .eq("processed", false)
+        .eq("content_sources.category", category)
+        .limit(itemsPerCategory);
+      
+      if (categoryItems && categoryItems.length > 0) {
+        itemsToProcess.push(...categoryItems);
+      }
+    }
+    
+    // If we got less than 20, fill with any unprocessed
+    if (itemsToProcess.length < 20) {
+      const { data: fillItems } = await supabase
+        .from("raw_content")
+        .select("*, content_sources(category)")
+        .eq("processed", false)
+        .not("id", "in", `(${itemsToProcess.map(i => i.id).join(",") || "''"})`)
+        .limit(20 - itemsToProcess.length);
+      
+      if (fillItems) {
+        itemsToProcess.push(...fillItems);
+      }
     }
 
     let totalProcessed = 0;
 
-    if (unprocessed && unprocessed.length > 0) {
-      logInfo("Processing content", { requestId, runId, count: unprocessed.length });
+    if (itemsToProcess.length > 0) {
+      logInfo("Processing content", { requestId, runId, count: itemsToProcess.length });
 
-      for (const item of unprocessed) {
+      for (const item of itemsToProcess) {
         try {
           // Process with LLM
           const processed = await processContentWithLLM(item.title, item.content);
@@ -197,6 +220,22 @@ export async function POST(request: NextRequest) {
     }
 
     logInfo("Processing complete", { requestId, runId, totalProcessed });
+
+    // Clean up old unprocessed content (older than 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const { error: cleanupError } = await supabase
+      .from("raw_content")
+      .delete()
+      .eq("processed", false)
+      .lt("created_at", sevenDaysAgo.toISOString());
+    
+    if (cleanupError) {
+      logError("Cleanup failed", { requestId, runId, error: cleanupError.message });
+    } else {
+      logInfo("Cleanup complete", { requestId, runId });
+    }
 
     // Mark automation run as completed
     await supabase
