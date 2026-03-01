@@ -86,20 +86,25 @@ export default function FeedClient() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading your feed...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-slate-600 font-medium">Loading your personalized feed...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50 flex items-center justify-center p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="text-6xl">⚠️</div>
+          <h2 className="text-2xl font-bold text-slate-900">Something went wrong</h2>
+          <p className="text-slate-600">{error}</p>
           <button
             onClick={handleSignOut}
-            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            className="px-6 py-3 bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition font-medium"
           >
             Sign Out
           </button>
@@ -112,22 +117,27 @@ export default function FeedClient() {
   const hasMoreCards = currentIndex < cards.length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50">
       <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">AccioAI</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
+              AccioAI
+            </h1>
             <p className="text-xs text-slate-500">
-              {currentIndex} of {cards.length} cards
+              {hasMoreCards ? `${currentIndex + 1} of ${cards.length}` : "All done!"}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/saved" className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+            <a 
+              href="/saved" 
+              className="px-4 py-2 text-sm bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition shadow-sm font-medium"
+            >
               📚 Saved
             </a>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition"
             >
               Sign Out
             </button>
@@ -138,16 +148,22 @@ export default function FeedClient() {
       <main className="relative h-[calc(100vh-80px)]">
         {!hasMoreCards ? (
           <div className="absolute inset-0 flex items-center justify-center p-4">
-            <div className="text-center space-y-4">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-bold text-gray-900">You&apos;re all caught up!</h2>
-              <p className="text-gray-600">New content will be available tomorrow.</p>
+            <div className="text-center space-y-6 max-w-md">
+              <div className="text-7xl mb-4">🎉</div>
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
+                You&apos;re All Caught Up!
+              </h2>
+              <p className="text-slate-600 text-lg">
+                {cards.length === 0 
+                  ? "No content matches your interests yet. Check back tomorrow!"
+                  : "Great job! New personalized content arrives daily at midnight."}
+              </p>
               <button
                 onClick={() => {
                   setCurrentIndex(0);
                   fetchFeed();
                 }}
-                className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md"
               >
                 Refresh Feed
               </button>
@@ -176,8 +192,8 @@ export default function FeedClient() {
             
             {/* Swipe Instructions */}
             {currentIndex === 0 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm">
-                👈 Swipe left to skip • Swipe right to like 👉 • Click to expand
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm shadow-lg">
+                👈 Swipe left to skip • Swipe right to like 👉 • Tap to expand
               </div>
             )}
           </>

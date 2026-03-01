@@ -17,6 +17,15 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
+    // Get user preferences
+    const { data: preferences } = await supabase
+      .from("user_preferences")
+      .select("content_categories")
+      .eq("user_id", user.id)
+      .single();
+
+    const userCategories = preferences?.content_categories || [];
+
     // Get cards user has already interacted with
     const { data: interactions } = await supabase
       .from("user_interactions")
@@ -31,10 +40,17 @@ export async function GET(request: NextRequest) {
       .select("*")
       .order("created_at", { ascending: false });
 
+    // Filter by viewed cards
     if (viewedCardIds.length > 0) {
       query = query.not("id", "in", `(${viewedCardIds.join(",")})`);
     }
 
+    // Filter by user preferences (if they have any)
+    if (userCategories.length > 0) {
+      query = query.in("category", userCategories);
+    }
+
+    // Override with specific category if requested
     if (category) {
       query = query.eq("category", category);
     }
