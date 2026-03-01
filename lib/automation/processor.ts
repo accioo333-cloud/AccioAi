@@ -11,69 +11,76 @@ export async function processContentWithLLM(
   title: string,
   content: string
 ): Promise<ProcessedContent> {
-  const prompt = `You are a content curator creating engaging, scannable summaries for busy professionals.
+  const prompt = `Summarize this article in a clear, engaging way.
 
-Article: "${title}"
+Title: ${title}
 
-Content: ${content.slice(0, 2500)}
+Content: ${content.slice(0, 2000)}
 
-Create a summary following this EXACT format:
+Provide:
+1. SUMMARY: 2-3 sentences (max 60 words)
+2. INSIGHTS: 3 bullet points with specific details
+3. ACTION: One thing the reader can do
 
-**Summary** (2-3 punchy sentences, max 60 words):
-[Write clear, engaging summary here]
+Format your response EXACTLY like this:
 
-**Key Insights:**
-• [First insight - specific and actionable]
-• [Second insight - include data/numbers if available]
-• [Third insight - surprising or counterintuitive]
+SUMMARY:
+[Your 2-3 sentence summary here]
 
-**Action Takeaway:**
-[One specific thing the reader can do today - start with a verb]
+INSIGHTS:
+- [First specific insight]
+- [Second specific insight]
+- [Third specific insight]
 
-Rules:
-- Be concise and specific
-- Use active voice
-- Include numbers/data when available
-- Make it scannable
-- No fluff or generic statements`;
+ACTION:
+[One actionable takeaway]`;
 
   try {
     const response = await generateResponse(prompt);
     
-    // Parse the structured response
-    const summaryMatch = response.match(/\*\*Summary\*\*[\s\S]*?(.*?)(?=\*\*Key Insights|\*\*Action|$)/);
-    const insightsMatch = response.match(/\*\*Key Insights[\s\S]*?\*\*([\s\S]*?)(?=\*\*Action|$)/);
-    const actionMatch = response.match(/\*\*Action Takeaway[\s\S]*?\*\*([\s\S]*?)$/);
+    // Parse response
+    const summaryMatch = response.match(/SUMMARY:\s*([\s\S]*?)(?=INSIGHTS:|$)/i);
+    const insightsMatch = response.match(/INSIGHTS:\s*([\s\S]*?)(?=ACTION:|$)/i);
+    const actionMatch = response.match(/ACTION:\s*([\s\S]*?)$/i);
     
-    const summary = summaryMatch?.[1]?.trim().replace(/\[.*?\]/g, '').trim() || "";
+    let summary = summaryMatch?.[1]?.trim() || "";
+    summary = summary.replace(/\[.*?\]/g, '').trim();
     
     const insightsText = insightsMatch?.[1] || "";
     const insights = insightsText
-      .split(/[•\-\n]/)
+      .split(/[\n\-•]/)
       .map(i => i.trim())
-      .filter(i => i.length > 10)
+      .filter(i => i.length > 15 && !i.toLowerCase().includes('['))
       .slice(0, 3);
     
-    const action_takeaway = actionMatch?.[1]?.trim().replace(/\[.*?\]/g, '').trim() || "";
+    let action_takeaway = actionMatch?.[1]?.trim() || "";
+    action_takeaway = action_takeaway.replace(/\[.*?\]/g, '').trim();
     
-    // Fallback if parsing fails
-    if (!summary || insights.length === 0) {
-      throw new Error("Failed to parse LLM response");
+    // Validate we got real content
+    if (!summary || summary.length < 20 || insights.length === 0) {
+      throw new Error("LLM returned incomplete response");
     }
     
     return {
       summary,
       insights,
-      action_takeaway,
+      action_takeaway: action_takeaway || "Read the full article for more details",
     };
   } catch (error) {
-    logError("LLM processing failed", { error: String(error) });
+    logError("LLM processing failed", { error: String(error), title });
     
-    // Fallback to basic processing
+    // Better fallback - use actual content
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    const summary = sentences.slice(0, 2).join('. ').slice(0, 200) + '.';
+    
     return {
-      summary: content.slice(0, 200) + "...",
-      insights: ["Key point from article", "Important information", "Notable detail"],
-      action_takeaway: "Review the full article for more details",
+      summary: summary || title,
+      insights: [
+        "This article discusses " + title.toLowerCase(),
+        "Key information is available in the full article",
+        "Read more for detailed insights"
+      ],
+      action_takeaway: "Click 'Read Full Article' for complete details",
     };
   }
 }
