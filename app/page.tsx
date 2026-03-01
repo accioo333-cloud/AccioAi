@@ -11,11 +11,11 @@ export default async function Home() {
   // If there's an auth error, show landing
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50 flex items-center justify-center p-4">
         <div className="w-full max-w-lg space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-4">
-            <h1 className="text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-indigo-600 via-indigo-500 to-orange-500 bg-clip-text text-transparent tracking-tight">
               AccioAI
             </h1>
             <p className="text-2xl text-slate-700 font-medium">
@@ -37,7 +37,7 @@ export default async function Home() {
               <h3 className="text-lg font-semibold text-slate-900 flex-1">
                 The Future of AI-Powered Development
               </h3>
-              <span className="ml-3 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
+              <span className="ml-3 px-3 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded-full">
                 Tech
               </span>
             </div>

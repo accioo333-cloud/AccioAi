@@ -118,7 +118,7 @@ export default function AuthButton() {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
       {showConfirmation ? (
-        <div className="text-center space-y-4 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
+        <div className="text-center space-y-4 p-6 bg-orange-50 rounded-lg border border-orange-200">
           <div className="text-4xl">📧</div>
           <h3 className="font-semibold text-slate-900">Check your email</h3>
           <p className="text-sm text-slate-600">
@@ -168,7 +168,7 @@ export default function AuthButton() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition font-medium shadow-md hover:shadow-lg disabled:bg-slate-400"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md hover:shadow-lg disabled:bg-slate-400"
             >
               {submitting ? "..." : isSignUp ? "Create Account" : "Sign In"}
             </button>
