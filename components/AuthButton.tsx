@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 
 export default function AuthButton() {
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSignUp, setIsSignUp] = useState(false);
@@ -51,14 +53,16 @@ export default function AuthButton() {
           return;
         }
         
-        window.location.href = "/";
+        router.push("/");
+        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        window.location.href = "/";
+        router.push("/");
+        router.refresh();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -87,7 +91,8 @@ export default function AuthButton() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    router.push("/");
+    router.refresh();
   };
 
   if (loading) {

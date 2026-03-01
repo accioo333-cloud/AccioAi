@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import SwipeCard from "./SwipeCard";
 
@@ -15,6 +16,7 @@ interface ContentCard {
 }
 
 export default function FeedClient() {
+  const router = useRouter();
   const [cards, setCards] = useState<ContentCard[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -75,7 +77,8 @@ export default function FeedClient() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/";
+    router.push("/");
+    router.refresh();
   };
 
   if (loading) {
