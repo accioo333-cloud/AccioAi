@@ -142,3 +142,36 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  const authResult = await requireAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
+  const { user, supabase } = authResult;
+
+  try {
+    const body = await request.json();
+    const { card_id, interaction_type } = body;
+
+    const { error } = await supabase
+      .from("user_interactions")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("card_id", card_id)
+      .eq("interaction_type", interaction_type);
+
+    if (error) {
+      return NextResponse.json(
+        { success: false, error: { code: "DATABASE_ERROR", message: "Failed to delete interaction" } },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: { code: "INTERNAL_ERROR", message: "An unexpected error occurred" } },
+      { status: 500 }
+    );
+  }
+}

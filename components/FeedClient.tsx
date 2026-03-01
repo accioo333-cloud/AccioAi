@@ -12,6 +12,8 @@ interface ContentCard {
   category: string;
   difficulty_level: string;
   estimated_time_minutes: number;
+  image_url?: string;
+  source_url?: string;
   created_at: string;
 }
 
@@ -117,12 +119,17 @@ export default function FeedClient() {
               {currentIndex} of {cards.length} cards
             </p>
           </div>
-          <button
-            onClick={handleSignOut}
-            className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700"
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            <a href="/saved" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+              📚 Saved
+            </a>
+            <button
+              onClick={handleSignOut}
+              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
 

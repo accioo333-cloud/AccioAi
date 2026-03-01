@@ -6,6 +6,7 @@ interface FetchedArticle {
   content: string;
   url: string;
   published_at: string;
+  image_url?: string;
 }
 
 const parser = new Parser({
@@ -29,11 +30,21 @@ export async function fetchRSSFeed(
       // Limit to 10 most recent
       if (!item.title || !item.link) continue;
 
+      // Extract image from enclosure, media, or content
+      let imageUrl = item.enclosure?.url || item.media?.thumbnail?.url || item.image?.url;
+      
+      // Try to extract from content if not found
+      if (!imageUrl && item.content) {
+        const imgMatch = item.content.match(/<img[^>]+src="([^">]+)"/);
+        if (imgMatch) imageUrl = imgMatch[1];
+      }
+
       articles.push({
         title: item.title,
         content: item.contentSnippet || item.content || item.summary || "",
         url: item.link,
         published_at: item.pubDate || item.isoDate || new Date().toISOString(),
+        image_url: imageUrl,
       });
     }
 

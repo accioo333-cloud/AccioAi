@@ -106,6 +106,7 @@ export async function POST(request: NextRequest) {
             title: article.title,
             content: article.content,
             url: article.url,
+            image_url: article.image_url,
             published_at: article.published_at,
             processed: false,
           });
@@ -168,6 +169,8 @@ export async function POST(request: NextRequest) {
               difficulty_level: difficulty,
               estimated_time_minutes: readingTime,
               tags: [category, difficulty],
+              image_url: item.image_url,
+              source_url: item.url,
             });
 
           if (cardError) {

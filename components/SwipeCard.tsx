@@ -9,6 +9,8 @@ interface ContentCard {
   category: string;
   difficulty_level: string;
   estimated_time_minutes: number;
+  image_url?: string;
+  source_url?: string;
 }
 
 interface SwipeCardProps {
@@ -70,6 +72,21 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
       onTouchEnd={handleEnd}
     >
       <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing">
+        {/* Card Image */}
+        {card.image_url && (
+          <div className="relative h-48 bg-gray-200 overflow-hidden">
+            <img 
+              src={card.image_url} 
+              alt={card.title}
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                // Hide image if it fails to load
+                e.currentTarget.parentElement!.style.display = 'none';
+              }}
+            />
+          </div>
+        )}
+
         {/* Card Header */}
         <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
           <div className="flex items-start justify-between mb-3">
@@ -95,25 +112,38 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
         </div>
 
         {/* Card Actions */}
-        <div className="p-6 bg-gray-50 border-t border-gray-200 flex gap-3">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction(card.id, "bookmark");
-            }}
-            className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-          >
-            📚 Read Later
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onAction(card.id, "complete");
-            }}
-            className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
-          >
-            ✓ Done
-          </button>
+        <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
+          {card.source_url && (
+            <a
+              href={card.source_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full px-4 py-3 bg-gray-600 text-white text-center rounded-lg hover:bg-gray-700 transition font-medium"
+              onClick={(e) => e.stopPropagation()}
+            >
+              🔗 Read Full Article
+            </a>
+          )}
+          <div className="flex gap-3">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction(card.id, "bookmark");
+              }}
+              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+            >
+              📚 Read Later
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAction(card.id, "complete");
+              }}
+              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+            >
+              ✓ Done
+            </button>
+          </div>
         </div>
 
         {/* Swipe Indicators */}
