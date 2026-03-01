@@ -1,11 +1,11 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import AuthButton from "@/components/AuthButton";
 
 export const dynamic = 'force-dynamic';
 
 export default async function Home() {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   // If there's an auth error, show landing

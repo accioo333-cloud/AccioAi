@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import OnboardingForm from "@/components/OnboardingForm";
 
 export default async function OnboardingPage() {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   // Not authenticated - redirect to login

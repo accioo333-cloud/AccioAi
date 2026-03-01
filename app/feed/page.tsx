@@ -1,9 +1,9 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createReadOnlyClient } from "@/lib/supabase/server";
 import FeedClient from "@/components/FeedClient";
 
 export default async function FeedPage() {
-  const supabase = await createClient();
+  const supabase = await createReadOnlyClient();
   const { data: { user } } = await supabase.auth.getUser();
 
   // Not authenticated - redirect to login
