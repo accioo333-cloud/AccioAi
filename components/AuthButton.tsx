@@ -49,11 +49,21 @@ export default function AuthButton() {
           return;
         }
       } else {
-        const result = await signIn(email, password);
+        // Use API route for sign in
+        const res = await fetch('/api/auth/signin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+
+        const data = await res.json();
         
-        if (result?.error) {
-          throw new Error(result.error);
+        if (!res.ok || data.error) {
+          throw new Error(data.error || 'Sign in failed');
         }
+
+        // Force reload to get new session
+        window.location.href = '/';
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
