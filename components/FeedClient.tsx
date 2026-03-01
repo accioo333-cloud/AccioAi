@@ -75,6 +75,8 @@ export default function FeedClient() {
   const handleSwipe = async (cardId: string, direction: "left" | "right") => {
     const interactionType = direction === "right" ? "like" : "view";
 
+    console.log("Recording interaction:", { cardId, interactionType, direction });
+
     try {
       // Record interaction and wait for response
       const res = await fetch("/api/interactions", {
@@ -86,8 +88,13 @@ export default function FeedClient() {
         }),
       });
 
+      const data = await res.json();
+      console.log("Interaction response:", data);
+
       if (!res.ok) {
-        console.error("Failed to record interaction:", await res.text());
+        console.error("Failed to record interaction:", data);
+      } else {
+        console.log("✅ Interaction saved successfully");
       }
     } catch (error) {
       console.error("Error recording interaction:", error);
