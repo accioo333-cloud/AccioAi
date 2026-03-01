@@ -14,8 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "AccioAI",
-  description: "AI-powered web application",
-  manifest: "/manifest.json",
+  description: "AI-powered intelligence feed",
 };
 
 export const viewport: Viewport = {
