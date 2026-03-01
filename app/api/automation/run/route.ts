@@ -89,16 +89,7 @@ export async function POST(request: NextRequest) {
       const articles = await fetchRSSFeed(source.source_url, source.id);
 
       for (const article of articles) {
-        // Check if article already exists
-        const { data: existing } = await supabase
-          .from("raw_content")
-          .select("id")
-          .eq("url", article.url)
-          .single();
-
-        if (existing) continue; // Skip duplicates
-
-        // Insert raw content
+        // Insert raw content with ON CONFLICT handling
         const { error: insertError } = await supabase
           .from("raw_content")
           .insert({
@@ -111,8 +102,12 @@ export async function POST(request: NextRequest) {
             processed: false,
           });
 
+        // Count successful inserts (ignore duplicates)
         if (!insertError) {
           totalFetched++;
+        } else if (!insertError.message?.includes('duplicate') && !insertError.message?.includes('unique')) {
+          // Log non-duplicate errors
+          logError("Failed to insert article", { error: insertError, url: article.url });
         }
       }
 

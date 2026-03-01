@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const code = searchParams.get("code");
-  const next = searchParams.get("next") || "/";
+  const next = searchParams.get("next") || "/feed";
 
   if (code) {
     const supabase = await createClient();
@@ -15,7 +15,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // For implicit flow, just redirect to home
-  // The hash will be handled by Supabase client on the page
+  // Redirect to home on error
   return NextResponse.redirect(new URL("/", request.url));
 }

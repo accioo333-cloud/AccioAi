@@ -11,27 +11,17 @@ export default async function Home() {
   // If there's an auth error, show landing
   if (error || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
-        <script dangerouslySetInnerHTML={{
-          __html: `
-            // Handle OAuth redirect with hash fragment (only once)
-            if (window.location.hash && window.location.hash.includes('access_token') && !sessionStorage.getItem('oauth_processed')) {
-              sessionStorage.setItem('oauth_processed', '1');
-              // Let Supabase client handle the session from hash
-              setTimeout(() => window.location.href = '/', 100);
-            }
-          `
-        }} />
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50 flex items-center justify-center p-4">
         <div className="w-full max-w-lg space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-4">
-            <h1 className="text-6xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-6xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent tracking-tight">
               AccioAI
             </h1>
-            <p className="text-2xl text-gray-700 font-medium">
+            <p className="text-2xl text-slate-700 font-medium">
               Your daily AI-curated intelligence feed.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Summaries. Insights. Actionable takeaways.
             </p>
           </div>
@@ -42,29 +32,29 @@ export default async function Home() {
           </div>
 
           {/* Preview Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-gray-100">
+          <div className="bg-white rounded-xl shadow-lg p-6 space-y-4 border border-slate-200">
             <div className="flex items-start justify-between">
-              <h3 className="text-lg font-semibold text-gray-900 flex-1">
+              <h3 className="text-lg font-semibold text-slate-900 flex-1">
                 The Future of AI-Powered Development
               </h3>
-              <span className="ml-3 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+              <span className="ml-3 px-3 py-1 bg-indigo-100 text-indigo-700 text-xs font-medium rounded-full">
                 Tech
               </span>
             </div>
             
-            <p className="text-gray-600 text-sm leading-relaxed">
+            <p className="text-slate-600 text-sm leading-relaxed">
               Recent advances in large language models are transforming how developers build software. 
               New tools enable faster prototyping and more intelligent code assistance.
             </p>
 
-            <div className="pt-2 border-t border-gray-100">
-              <p className="text-xs font-semibold text-gray-700 mb-2">Key Insight:</p>
-              <p className="text-sm text-gray-600">
+            <div className="pt-2 border-t border-slate-100">
+              <p className="text-xs font-semibold text-slate-700 mb-2">Key Insight:</p>
+              <p className="text-sm text-slate-600">
                 • AI coding assistants now handle 40% of routine development tasks
               </p>
             </div>
 
-            <div className="flex items-center gap-3 text-xs text-gray-500">
+            <div className="flex items-center gap-3 text-xs text-slate-500">
               <span className="capitalize">Intermediate</span>
               <span>•</span>
               <span>5 min read</span>

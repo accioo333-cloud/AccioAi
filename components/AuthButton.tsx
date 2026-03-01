@@ -96,7 +96,7 @@ export default function AuthButton() {
 
   if (loading) {
     return (
-      <div className="px-8 py-3 bg-gray-200 text-gray-400 rounded-lg">
+      <div className="px-8 py-3 bg-slate-200 text-slate-400 rounded-lg">
         Loading...
       </div>
     );
@@ -107,7 +107,7 @@ export default function AuthButton() {
     return (
       <button
         onClick={handleSignOut}
-        className="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-medium"
+        className="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition font-medium"
       >
         Sign Out
       </button>
@@ -118,13 +118,13 @@ export default function AuthButton() {
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
       {showConfirmation ? (
-        <div className="text-center space-y-4 p-6 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="text-center space-y-4 p-6 bg-indigo-50 rounded-lg border border-indigo-200">
           <div className="text-4xl">📧</div>
-          <h3 className="font-semibold text-gray-900">Check your email</h3>
-          <p className="text-sm text-gray-600">
+          <h3 className="font-semibold text-slate-900">Check your email</h3>
+          <p className="text-sm text-slate-600">
             We sent a confirmation link to <strong>{email}</strong>
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-slate-500">
             Click the link in the email to complete your signup.
           </p>
           <button
@@ -134,7 +134,7 @@ export default function AuthButton() {
               setEmail("");
               setPassword("");
             }}
-            className="text-sm text-blue-600 hover:text-blue-700"
+            className="text-sm text-indigo-600 hover:text-indigo-700"
           >
             Back to sign in
           </button>
@@ -147,7 +147,7 @@ export default function AuthButton() {
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Email"
             required
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
           
           <input
@@ -157,7 +157,7 @@ export default function AuthButton() {
             placeholder="Password"
             required
             minLength={6}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           />
 
           {error && (
@@ -168,7 +168,7 @@ export default function AuthButton() {
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium shadow-md hover:shadow-lg disabled:bg-gray-400"
+              className="flex-1 px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition font-medium shadow-md hover:shadow-lg disabled:bg-slate-400"
             >
               {submitting ? "..." : isSignUp ? "Create Account" : "Sign In"}
             </button>
@@ -180,7 +180,7 @@ export default function AuthButton() {
                 setError("");
                 setShowConfirmation(false);
               }}
-              className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition font-medium"
+              className="px-6 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
             >
               {isSignUp ? "Sign In" : "Sign Up"}
             </button>
@@ -188,10 +188,10 @@ export default function AuthButton() {
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-slate-300"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+              <span className="px-2 bg-white text-slate-500">Or continue with</span>
             </div>
           </div>
 
@@ -199,7 +199,7 @@ export default function AuthButton() {
             type="button"
             onClick={handleGoogleSignIn}
             disabled={submitting}
-            className="w-full px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:bg-gray-100"
+            className="w-full px-6 py-3 bg-white border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition font-medium shadow-sm hover:shadow flex items-center justify-center gap-3 disabled:bg-slate-100"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
