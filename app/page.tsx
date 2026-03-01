@@ -12,6 +12,14 @@ export default async function Home() {
   if (error || !user) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center p-4">
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            // Handle OAuth redirect with hash fragment
+            if (window.location.hash && window.location.hash.includes('access_token')) {
+              window.location.href = '/auth/callback' + window.location.hash;
+            }
+          `
+        }} />
         <div className="w-full max-w-lg space-y-8">
           {/* Hero Section */}
           <div className="text-center space-y-4">
