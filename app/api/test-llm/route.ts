@@ -1,40 +1,24 @@
 import { NextResponse } from "next/server";
-import { generateResponse } from "@/lib/llm";
+import { processContentWithLLM } from "@/lib/automation/processor";
 
 export async function GET() {
   try {
-    const testPrompt = `Summarize this in 2 sentences:
+    const testTitle = "AI Revolution in Software Development";
+    const testContent = "Artificial intelligence is transforming how developers write code. New AI tools can generate entire functions, debug errors, and suggest optimizations in real-time. Companies are investing billions in AI-powered development tools. Studies show AI can reduce coding time by 40%. However, concerns about code quality and security remain.";
 
-Title: AI Revolution in Software Development
-
-Content: Artificial intelligence is transforming how developers write code. New AI tools can generate entire functions, debug errors, and suggest optimizations in real-time.
-
-Format:
-SUMMARY:
-[Your summary here]
-
-INSIGHTS:
-- [Insight 1]
-- [Insight 2]
-- [Insight 3]
-
-ACTION:
-[Action here]`;
-
-    const response = await generateResponse(testPrompt);
+    const result = await processContentWithLLM(testTitle, testContent);
     
     return NextResponse.json({
       success: true,
-      prompt: testPrompt,
-      response: response,
-      apiKey: process.env.GROQ_API_KEY ? "Set (hidden)" : "NOT SET",
+      result: result,
+      apiKey: process.env.GROQ_API_KEY ? "Set" : "NOT SET",
       model: process.env.LLM_MODEL || "llama-3.1-8b-instant",
     });
   } catch (error) {
     return NextResponse.json({
       success: false,
       error: String(error),
-      apiKey: process.env.GROQ_API_KEY ? "Set (hidden)" : "NOT SET",
+      stack: error instanceof Error ? error.stack : undefined,
     }, { status: 500 });
   }
 }
