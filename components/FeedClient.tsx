@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import SwipeCard from "./SwipeCard";
+import CardDetailModal from "./CardDetailModal";
 
 interface ContentCard {
   id: string;
@@ -23,6 +24,7 @@ export default function FeedClient() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
 
   useEffect(() => {
     fetchFeed();
@@ -110,22 +112,22 @@ export default function FeedClient() {
   const hasMoreCards = currentIndex < cards.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <header className="bg-white/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">AccioAI</h1>
-            <p className="text-xs text-gray-500">
+            <h1 className="text-2xl font-bold text-slate-900">AccioAI</h1>
+            <p className="text-xs text-slate-500">
               {currentIndex} of {cards.length} cards
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <a href="/saved" className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+            <a href="/saved" className="px-4 py-2 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
               📚 Saved
             </a>
             <button
               onClick={handleSignOut}
-              className="px-4 py-2 text-sm bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+              className="px-4 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition-colors"
             >
               Sign Out
             </button>
@@ -154,18 +156,28 @@ export default function FeedClient() {
         ) : (
           <>
             {currentCard && (
-              <SwipeCard
-                key={currentCard.id}
-                card={currentCard}
-                onSwipe={handleSwipe}
-                onAction={handleAction}
-              />
+              <>
+                <SwipeCard
+                  key={currentCard.id}
+                  card={currentCard}
+                  onSwipe={handleSwipe}
+                  onAction={handleAction}
+                  onClick={() => setSelectedCard(currentCard)}
+                />
+                
+                {selectedCard && (
+                  <CardDetailModal
+                    card={selectedCard}
+                    onClose={() => setSelectedCard(null)}
+                  />
+                )}
+              </>
             )}
             
             {/* Swipe Instructions */}
             {currentIndex === 0 && (
               <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-black/70 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm">
-                👈 Swipe left to skip • Swipe right to like 👉
+                👈 Swipe left to skip • Swipe right to like 👉 • Click to expand
               </div>
             )}
           </>

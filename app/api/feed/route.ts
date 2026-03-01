@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   const authResult = await requireAuth();
   if (authResult instanceof NextResponse) return authResult;
 
-  const { supabase } = authResult;
+  const { user, supabase } = authResult;
 
   try {
     const { searchParams } = new URL(request.url);
@@ -17,15 +17,29 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get("limit") || "20");
     const offset = parseInt(searchParams.get("offset") || "0");
 
+    // Get cards user has already interacted with
+    const { data: interactions } = await supabase
+      .from("user_interactions")
+      .select("card_id")
+      .eq("user_id", user.id);
+
+    const viewedCardIds = interactions?.map(i => i.card_id) || [];
+
+    // Build query to exclude viewed cards
     let query = supabase
       .from("content_cards")
       .select("*")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order("created_at", { ascending: false });
+
+    if (viewedCardIds.length > 0) {
+      query = query.not("id", "in", `(${viewedCardIds.join(",")})`);
+    }
 
     if (category) {
       query = query.eq("category", category);
     }
+
+    query = query.range(offset, offset + limit - 1);
 
     const { data, error, count } = await query;
 

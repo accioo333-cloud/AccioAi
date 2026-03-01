@@ -17,9 +17,10 @@ interface SwipeCardProps {
   card: ContentCard;
   onSwipe: (cardId: string, direction: "left" | "right") => void;
   onAction: (cardId: string, action: "bookmark" | "complete") => void;
+  onClick?: () => void;
 }
 
-export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
+export default function SwipeCard({ card, onSwipe, onAction, onClick }: SwipeCardProps) {
   const [startX, setStartX] = useState(0);
   const [currentX, setCurrentX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -71,16 +72,18 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
       onTouchMove={(e) => handleMove(e.touches[0].clientX)}
       onTouchEnd={handleEnd}
     >
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden cursor-grab active:cursor-grabbing">
+      <div 
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing border border-slate-200"
+        onClick={onClick}
+      >
         {/* Card Image */}
         {card.image_url && (
-          <div className="relative h-48 bg-gray-200 overflow-hidden">
+          <div className="relative h-48 bg-slate-100 overflow-hidden">
             <img 
               src={card.image_url} 
               alt={card.title}
               className="w-full h-full object-cover"
               onError={(e) => {
-                // Hide image if it fails to load
                 e.currentTarget.parentElement!.style.display = 'none';
               }}
             />
@@ -88,37 +91,37 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
         )}
 
         {/* Card Header */}
-        <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 text-white">
           <div className="flex items-start justify-between mb-3">
             <h2 className="text-2xl font-bold flex-1 leading-tight">
               {card.title}
             </h2>
-            <span className="ml-3 px-3 py-1 bg-white/20 backdrop-blur-sm text-xs font-medium rounded-full">
+            <span className="ml-3 px-3 py-1 bg-white/20 backdrop-blur-sm text-xs font-semibold rounded-full uppercase tracking-wide">
               {card.category}
             </span>
           </div>
           <div className="flex items-center gap-3 text-sm opacity-90">
-            <span className="capitalize">{card.difficulty_level}</span>
+            <span className="capitalize font-medium">{card.difficulty_level}</span>
             <span>•</span>
-            <span>{card.estimated_time_minutes} min</span>
+            <span>{card.estimated_time_minutes} min read</span>
           </div>
         </div>
 
         {/* Card Content */}
-        <div className="p-6 max-h-96 overflow-y-auto">
-          <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap">
+        <div className="p-6 max-h-96 overflow-y-auto bg-slate-50">
+          <div className="prose prose-sm max-w-none text-slate-700 whitespace-pre-wrap leading-relaxed">
             {card.content}
           </div>
         </div>
 
         {/* Card Actions */}
-        <div className="p-6 bg-gray-50 border-t border-gray-200 space-y-3">
+        <div className="p-6 bg-white border-t border-slate-200 space-y-3">
           {card.source_url && (
             <a
               href={card.source_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="block w-full px-4 py-3 bg-gray-600 text-white text-center rounded-lg hover:bg-gray-700 transition font-medium"
+              className="block w-full px-4 py-3 bg-slate-700 text-white text-center rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-sm"
               onClick={(e) => e.stopPropagation()}
             >
               🔗 Read Full Article
@@ -130,7 +133,7 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
                 e.stopPropagation();
                 onAction(card.id, "bookmark");
               }}
-              className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+              className="flex-1 px-4 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium shadow-sm"
             >
               📚 Read Later
             </button>
@@ -139,7 +142,7 @@ export default function SwipeCard({ card, onSwipe, onAction }: SwipeCardProps) {
                 e.stopPropagation();
                 onAction(card.id, "complete");
               }}
-              className="flex-1 px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-medium"
+              className="flex-1 px-4 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm"
             >
               ✓ Done
             </button>
