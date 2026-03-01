@@ -54,15 +54,14 @@ export default function AuthButton() {
         }
         
         router.push("/");
-        router.refresh();
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
         if (error) throw error;
-        router.push("/");
-        router.refresh();
+        // Force full page reload to refresh server session
+        window.location.href = "/";
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Authentication failed");
@@ -91,8 +90,7 @@ export default function AuthButton() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    window.location.href = "/";
   };
 
   if (loading) {

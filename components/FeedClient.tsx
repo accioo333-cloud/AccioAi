@@ -77,8 +77,7 @@ export default function FeedClient() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
+    window.location.href = "/";
   };
 
   if (loading) {
