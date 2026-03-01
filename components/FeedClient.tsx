@@ -95,6 +95,8 @@ export default function FeedClient() {
         console.error("Failed to record interaction:", data);
       } else {
         console.log("✅ Interaction saved successfully");
+        // Remove the card from local state so it doesn't show again
+        setCards(prev => prev.filter(card => card.id !== cardId));
       }
     } catch (error) {
       console.error("Error recording interaction:", error);
@@ -118,6 +120,9 @@ export default function FeedClient() {
 
       if (!res.ok) {
         console.error("Failed to record action:", await res.text());
+      } else {
+        // Remove the card from local state
+        setCards(prev => prev.filter(card => card.id !== cardId));
       }
     } catch (error) {
       console.error("Error recording action:", error);
