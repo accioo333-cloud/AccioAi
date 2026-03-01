@@ -47,6 +47,31 @@ export default function FeedClient() {
     }
   };
 
+  const handleRefresh = async () => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      // Trigger automation to fetch new content
+      const automationRes = await fetch("/api/automation/run", {
+        method: "POST",
+      });
+      
+      if (automationRes.ok) {
+        // Wait a bit for processing
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+      
+      // Fetch updated feed
+      await fetchFeed();
+      setCurrentIndex(0);
+    } catch {
+      setError("Failed to refresh feed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSwipe = async (cardId: string, direction: "left" | "right") => {
     const interactionType = direction === "right" ? "like" : "view";
 
@@ -145,7 +170,7 @@ export default function FeedClient() {
         </div>
       </header>
 
-      <main className="relative h-[calc(100vh-80px)]">
+      <main className="relative h-[calc(100vh-80px)] overflow-hidden">
         {!hasMoreCards ? (
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div className="text-center space-y-6 max-w-md">
@@ -155,48 +180,74 @@ export default function FeedClient() {
               </h2>
               <p className="text-slate-600 text-lg">
                 {cards.length === 0 
-                  ? "No content matches your interests yet. Check back tomorrow!"
+                  ? "No content matches your interests yet. Try refreshing to fetch new content!"
                   : "Great job! New personalized content arrives daily at midnight."}
               </p>
               <button
-                onClick={() => {
-                  setCurrentIndex(0);
-                  fetchFeed();
-                }}
-                className="mt-4 px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md"
+                onClick={handleRefresh}
+                disabled={loading}
+                className="mt-4 px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Refresh Feed
+                {loading ? "Fetching new content..." : "Refresh Feed"}
               </button>
             </div>
           </div>
         ) : (
-          <>
-            {currentCard && (
-              <>
-                <SwipeCard
-                  key={currentCard.id}
-                  card={currentCard}
-                  onSwipe={handleSwipe}
-                  onAction={handleAction}
-                  onClick={() => setSelectedCard(currentCard)}
-                />
-                
-                {selectedCard && (
-                  <CardDetailModal
-                    card={selectedCard}
-                    onClose={() => setSelectedCard(null)}
-                  />
-                )}
-              </>
+          <div className="relative h-full">
+            {/* Stack of cards - show next 2 cards behind current */}
+            {[2, 1, 0].map((offset) => {
+              const cardIndex = currentIndex + offset;
+              const cardData = cards[cardIndex];
+              
+              if (!cardData) return null;
+              
+              const isCurrentCard = offset === 0;
+              const scale = 1 - (offset * 0.05);
+              const translateY = offset * 20;
+              const zIndex = 10 - offset;
+              
+              return (
+                <div
+                  key={cardData.id}
+                  className="absolute inset-0"
+                  style={{
+                    transform: `scale(${scale}) translateY(${translateY}px)`,
+                    zIndex,
+                    pointerEvents: isCurrentCard ? 'auto' : 'none',
+                    opacity: isCurrentCard ? 1 : 0.5,
+                  }}
+                >
+                  {isCurrentCard && (
+                    <SwipeCard
+                      card={cardData}
+                      onSwipe={handleSwipe}
+                      onAction={handleAction}
+                      onClick={() => setSelectedCard(cardData)}
+                    />
+                  )}
+                  {!isCurrentCard && (
+                    <div className="absolute inset-0 flex items-center justify-center p-4">
+                      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl h-[600px] border border-slate-200"></div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            
+            {selectedCard && (
+              <CardDetailModal
+                card={selectedCard}
+                onClose={() => setSelectedCard(null)}
+              />
             )}
             
             {/* Swipe Instructions */}
             {currentIndex === 0 && (
-              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm shadow-lg">
+              <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-slate-900/80 text-white px-6 py-3 rounded-full text-sm backdrop-blur-sm shadow-lg z-50">
                 👈 Swipe left to skip • Swipe right to like 👉 • Tap to expand
               </div>
             )}
-          </>
+          </div>
         )}
       </main>
     </div>

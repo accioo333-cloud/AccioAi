@@ -64,14 +64,21 @@ export function estimateReadingTime(content: string): number {
 
 export function extractCategory(sourceCategory: string): string {
   const categoryMap: Record<string, string> = {
+    technology: "technology",
     tech: "technology",
     business: "business",
     science: "science",
     health: "health",
-    news: "general",
+    design: "design",
+    ai_ml: "ai_ml",
+    "ai/ml": "ai_ml",
+    startups: "startups",
+    finance: "finance",
+    news: "technology",
+    general: "technology",
   };
   
-  return categoryMap[sourceCategory.toLowerCase()] || "general";
+  return categoryMap[sourceCategory.toLowerCase()] || "technology";
 }
 
 export function determineDifficulty(content: string): string {
