@@ -11,38 +11,60 @@ export async function processContentWithLLM(
   title: string,
   content: string
 ): Promise<ProcessedContent> {
-  const prompt = `Analyze this article and provide:
-1. A concise summary (2-3 sentences)
-2. Three key insights (bullet points)
-3. One actionable takeaway
+  const prompt = `You are a content curator creating engaging, scannable summaries for busy professionals.
 
-Article Title: ${title}
+Article: "${title}"
 
-Article Content:
-${content.slice(0, 3000)}
+Content: ${content.slice(0, 2500)}
 
-Respond in JSON format:
-{
-  "summary": "...",
-  "insights": ["...", "...", "..."],
-  "action_takeaway": "..."
-}`;
+Create a summary following this EXACT format:
+
+**Summary** (2-3 punchy sentences, max 60 words):
+[Write clear, engaging summary here]
+
+**Key Insights:**
+• [First insight - specific and actionable]
+• [Second insight - include data/numbers if available]
+• [Third insight - surprising or counterintuitive]
+
+**Action Takeaway:**
+[One specific thing the reader can do today - start with a verb]
+
+Rules:
+- Be concise and specific
+- Use active voice
+- Include numbers/data when available
+- Make it scannable
+- No fluff or generic statements`;
 
   try {
     const response = await generateResponse(prompt);
     
-    // Extract JSON from response
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error("No JSON found in LLM response");
+    // Parse the structured response
+    const summaryMatch = response.match(/\*\*Summary\*\*[\s\S]*?(.*?)(?=\*\*Key Insights|\*\*Action|$)/);
+    const insightsMatch = response.match(/\*\*Key Insights[\s\S]*?\*\*([\s\S]*?)(?=\*\*Action|$)/);
+    const actionMatch = response.match(/\*\*Action Takeaway[\s\S]*?\*\*([\s\S]*?)$/);
+    
+    const summary = summaryMatch?.[1]?.trim().replace(/\[.*?\]/g, '').trim() || "";
+    
+    const insightsText = insightsMatch?.[1] || "";
+    const insights = insightsText
+      .split(/[•\-\n]/)
+      .map(i => i.trim())
+      .filter(i => i.length > 10)
+      .slice(0, 3);
+    
+    const action_takeaway = actionMatch?.[1]?.trim().replace(/\[.*?\]/g, '').trim() || "";
+    
+    // Fallback if parsing fails
+    if (!summary || insights.length === 0) {
+      throw new Error("Failed to parse LLM response");
     }
-
-    const parsed = JSON.parse(jsonMatch[0]);
     
     return {
-      summary: parsed.summary || "",
-      insights: Array.isArray(parsed.insights) ? parsed.insights.slice(0, 3) : [],
-      action_takeaway: parsed.action_takeaway || "",
+      summary,
+      insights,
+      action_takeaway,
     };
   } catch (error) {
     logError("LLM processing failed", { error: String(error) });
