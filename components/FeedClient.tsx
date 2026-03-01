@@ -95,15 +95,15 @@ export default function FeedClient() {
         console.error("Failed to record interaction:", data);
       } else {
         console.log("✅ Interaction saved successfully");
-        // Remove the card from local state so it doesn't show again
+        // Remove the card from local state
+        // Don't increment index - removing card shifts array, so same index shows next card
         setCards(prev => prev.filter(card => card.id !== cardId));
       }
     } catch (error) {
       console.error("Error recording interaction:", error);
+      // Still move forward on error
+      setCurrentIndex((prev) => prev + 1);
     }
-
-    // Move to next card
-    setCurrentIndex((prev) => prev + 1);
   };
 
   const handleAction = async (cardId: string, action: "bookmark" | "complete") => {
@@ -122,14 +122,14 @@ export default function FeedClient() {
         console.error("Failed to record action:", await res.text());
       } else {
         // Remove the card from local state
+        // Don't increment index - array shifts automatically
         setCards(prev => prev.filter(card => card.id !== cardId));
       }
     } catch (error) {
       console.error("Error recording action:", error);
+      // Still move forward on error
+      setCurrentIndex((prev) => prev + 1);
     }
-
-    // Move to next card
-    setCurrentIndex((prev) => prev + 1);
   };
 
   const handleSignOut = async () => {
