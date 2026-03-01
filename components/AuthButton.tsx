@@ -79,7 +79,7 @@ export default function AuthButton() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
         },
       });
       if (error) throw error;
@@ -90,7 +90,8 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
-    await signOut();
+    await fetch('/api/auth/signout', { method: 'POST' });
+    window.location.href = "/";
   };
 
   if (loading) {
