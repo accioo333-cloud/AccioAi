@@ -1,4 +1,4 @@
-import { getProvider } from "@/lib/llm";
+import { generateResponse } from "@/lib/llm";
 import { logError } from "@/lib/logger";
 
 interface ProcessedContent {
@@ -11,8 +11,6 @@ export async function processContentWithLLM(
   title: string,
   content: string
 ): Promise<ProcessedContent> {
-  const provider = getProvider();
-
   const prompt = `Analyze this article and provide:
 1. A concise summary (2-3 sentences)
 2. Three key insights (bullet points)
@@ -31,7 +29,7 @@ Respond in JSON format:
 }`;
 
   try {
-    const response = await provider.generateResponse(prompt);
+    const response = await generateResponse(prompt);
     
     // Extract JSON from response
     const jsonMatch = response.match(/\{[\s\S]*\}/);
