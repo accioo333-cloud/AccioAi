@@ -75,15 +75,30 @@ export default function AuthButton() {
     setError("");
     setSubmitting(true);
     
+    console.log("=== Google Sign In Started ===");
+    console.log("Site URL:", typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL);
+    
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const redirectUrl = `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`;
+      console.log("Redirect URL:", redirectUrl);
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+          redirectTo: redirectUrl,
         },
       });
-      if (error) throw error;
+      
+      console.log("OAuth response:", { data, error });
+      
+      if (error) {
+        console.error("OAuth initiation error:", error);
+        throw error;
+      }
+      
+      console.log("✅ Redirecting to Google...");
     } catch (err) {
+      console.error("❌ Google sign in failed:", err);
       setError(err instanceof Error ? err.message : "Google sign in failed");
       setSubmitting(false);
     }
