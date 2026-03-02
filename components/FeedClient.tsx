@@ -25,6 +25,8 @@ export default function FeedClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
+  const [totalCards, setTotalCards] = useState(0); // Track initial total
+  const [viewedCount, setViewedCount] = useState(0); // Track how many viewed
 
   useEffect(() => {
     fetchFeed();
@@ -37,6 +39,7 @@ export default function FeedClient() {
 
       if (data.success) {
         setCards(data.data.cards);
+        setTotalCards(data.data.cards.length); // Store initial count
       } else {
         setError(data.error?.message || "Failed to load feed");
       }
@@ -98,6 +101,7 @@ export default function FeedClient() {
         // Remove the card from local state
         // Don't increment index - removing card shifts array, so same index shows next card
         setCards(prev => prev.filter(card => card.id !== cardId));
+        setViewedCount(prev => prev + 1); // Increment viewed count
       }
     } catch (error) {
       console.error("Error recording interaction:", error);
@@ -124,6 +128,7 @@ export default function FeedClient() {
         // Remove the card from local state
         // Don't increment index - array shifts automatically
         setCards(prev => prev.filter(card => card.id !== cardId));
+        setViewedCount(prev => prev + 1); // Increment viewed count
       }
     } catch (error) {
       console.error("Error recording action:", error);
@@ -178,7 +183,7 @@ export default function FeedClient() {
               AccioAI
             </h1>
             <p className="text-xs text-slate-500">
-              {hasMoreCards ? `${currentIndex + 1} of ${cards.length}` : "All done!"}
+              {hasMoreCards ? `${viewedCount + 1} of ${totalCards}` : "All done!"}
             </p>
           </div>
           <div className="flex items-center gap-3">
