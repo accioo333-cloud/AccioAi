@@ -28,10 +28,25 @@ export default function FeedClient() {
   const [totalCards, setTotalCards] = useState(0); // Track initial total
   const [viewedCount, setViewedCount] = useState(0); // Track how many viewed
   const [newCardsToday, setNewCardsToday] = useState(0); // Track new cards added today
+  const [currentStreak, setCurrentStreak] = useState(0); // Track streak
+  const [showCelebration, setShowCelebration] = useState(false); // Celebration animation
 
   useEffect(() => {
     fetchFeed();
+    fetchStats();
   }, []);
+
+  const fetchStats = async () => {
+    try {
+      const res = await fetch("/api/stats");
+      const data = await res.json();
+      if (data.success) {
+        setCurrentStreak(data.data.currentStreak);
+      }
+    } catch (error) {
+      console.error("Failed to fetch stats:", error);
+    }
+  };
 
   const fetchFeed = async () => {
     try {
@@ -109,7 +124,15 @@ export default function FeedClient() {
         console.log("✅ Interaction saved successfully");
         // Remove the card from local state
         // Don't increment index - removing card shifts array, so same index shows next card
-        setCards(prev => prev.filter(card => card.id !== cardId));
+        setCards(prev => {
+          const newCards = prev.filter(card => card.id !== cardId);
+          // Show celebration if this was the last card
+          if (newCards.length === 0 && prev.length > 0) {
+            setShowCelebration(true);
+            setTimeout(() => setShowCelebration(false), 3000);
+          }
+          return newCards;
+        });
         setViewedCount(prev => prev + 1); // Increment viewed count
       }
     } catch (error) {
@@ -136,7 +159,15 @@ export default function FeedClient() {
       } else {
         // Remove the card from local state
         // Don't increment index - array shifts automatically
-        setCards(prev => prev.filter(card => card.id !== cardId));
+        setCards(prev => {
+          const newCards = prev.filter(card => card.id !== cardId);
+          // Show celebration if this was the last card
+          if (newCards.length === 0 && prev.length > 0) {
+            setShowCelebration(true);
+            setTimeout(() => setShowCelebration(false), 3000);
+          }
+          return newCards;
+        });
         setViewedCount(prev => prev + 1); // Increment viewed count
       }
     } catch (error) {
@@ -187,7 +218,7 @@ export default function FeedClient() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50">
       <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
         <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div>
+          <div className="flex-1">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
               AccioAI
             </h1>
@@ -196,7 +227,19 @@ export default function FeedClient() {
               {newCardsToday > 0 && (
                 <span className="text-green-600 font-medium">• {newCardsToday} new today</span>
               )}
+              {currentStreak > 0 && (
+                <span className="text-orange-600 font-medium">• 🔥 {currentStreak} day streak</span>
+              )}
             </div>
+            {/* Progress bar */}
+            {totalCards > 0 && (
+              <div className="mt-2 w-full max-w-xs bg-slate-200 rounded-full h-1.5">
+                <div 
+                  className="bg-gradient-to-r from-indigo-600 to-orange-500 h-1.5 rounded-full transition-all duration-300"
+                  style={{ width: `${(viewedCount / totalCards) * 100}%` }}
+                />
+              </div>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <a 
@@ -219,6 +262,13 @@ export default function FeedClient() {
         {!hasMoreCards ? (
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div className="text-center space-y-6 max-w-md">
+              {showCelebration && (
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="text-6xl animate-bounce">🎉</div>
+                  <div className="text-6xl animate-bounce delay-100" style={{ animationDelay: '0.1s' }}>✨</div>
+                  <div className="text-6xl animate-bounce delay-200" style={{ animationDelay: '0.2s' }}>🎊</div>
+                </div>
+              )}
               <div className="text-7xl mb-4">🎉</div>
               <h2 className="text-3xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
                 You&apos;re All Caught Up!

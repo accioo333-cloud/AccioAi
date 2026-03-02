@@ -67,6 +67,58 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Update daily stats
+    const today = new Date().toISOString().split('T')[0];
+    const statField = interaction_type === 'view' ? 'cards_viewed' :
+                      interaction_type === 'like' ? 'cards_liked' :
+                      interaction_type === 'bookmark' ? 'cards_saved' : 'cards_completed';
+    
+    await supabase.rpc('increment_daily_stat', {
+      p_user_id: user.id,
+      p_date: today,
+      p_field: statField,
+    }).catch(() => {
+      // Create if doesn't exist
+      supabase.from('daily_stats').upsert({
+        user_id: user.id,
+        date: today,
+        [statField]: 1,
+      }, { onConflict: 'user_id,date' });
+    });
+
+    // Update streak
+    const { data: prefs } = await supabase
+      .from('user_preferences')
+      .select('last_activity_date, current_streak, longest_streak')
+      .eq('user_id', user.id)
+      .single();
+
+    if (prefs) {
+      const lastDate = prefs.last_activity_date ? new Date(prefs.last_activity_date) : null;
+      const todayDate = new Date(today);
+      let newStreak = prefs.current_streak || 0;
+
+      if (!lastDate || lastDate.toISOString().split('T')[0] !== today) {
+        // New day
+        const daysDiff = lastDate ? Math.floor((todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+        
+        if (daysDiff === 1) {
+          newStreak += 1; // Continue streak
+        } else if (daysDiff > 1) {
+          newStreak = 1; // Reset streak
+        }
+
+        await supabase
+          .from('user_preferences')
+          .update({
+            last_activity_date: today,
+            current_streak: newStreak,
+            longest_streak: Math.max(newStreak, prefs.longest_streak || 0),
+          })
+          .eq('user_id', user.id);
+      }
+    }
+
     logInfo("Interaction recorded", { requestId, userId: user.id, cardId: card_id, type: interaction_type });
     return NextResponse.json({ success: true, data });
   } catch (error) {
