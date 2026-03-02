@@ -225,51 +225,53 @@ export default function FeedClient() {
   const hasMoreCards = currentIndex < cards.length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-orange-50 flex flex-col">
       <header className="bg-white shadow-sm sticky top-0 z-10 border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
-              AccioAI
-            </h1>
-            <div className="flex items-center gap-3 text-xs text-slate-500">
-              <span>{hasMoreCards ? `${viewedCount + 1} of ${totalCards}` : "All done!"}</span>
-              {newCardsToday > 0 && (
-                <span className="text-green-600 font-medium">• {newCardsToday} new today</span>
-              )}
-              {currentStreak > 0 && (
-                <span className="text-orange-600 font-medium">• 🔥 {currentStreak} day streak</span>
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
+          <div className="flex justify-between items-start gap-2">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
+                AccioAI
+              </h1>
+              <div className="flex items-center gap-2 text-xs text-slate-500 flex-wrap">
+                <span>{hasMoreCards ? `${viewedCount + 1} of ${totalCards}` : "All done!"}</span>
+                {newCardsToday > 0 && (
+                  <span className="text-green-600 font-medium">• {newCardsToday} new</span>
+                )}
+                {currentStreak > 0 && (
+                  <span className="text-orange-600 font-medium">• 🔥 {currentStreak}</span>
+                )}
+              </div>
+              {/* Progress bar */}
+              {totalCards > 0 && (
+                <div className="mt-2 w-full max-w-xs bg-slate-200 rounded-full h-1.5">
+                  <div 
+                    className="bg-gradient-to-r from-indigo-600 to-orange-500 h-1.5 rounded-full transition-all duration-300"
+                    style={{ width: `${(viewedCount / totalCards) * 100}%` }}
+                  />
+                </div>
               )}
             </div>
-            {/* Progress bar */}
-            {totalCards > 0 && (
-              <div className="mt-2 w-full max-w-xs bg-slate-200 rounded-full h-1.5">
-                <div 
-                  className="bg-gradient-to-r from-indigo-600 to-orange-500 h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${(viewedCount / totalCards) * 100}%` }}
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
-            >
-              🔍 Search
-            </button>
-            <a 
-              href="/saved" 
-              className="px-4 py-2 text-sm bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition shadow-sm font-medium"
-            >
-              📚 Saved
-            </a>
-            <button
-              onClick={handleSignOut}
-              className="px-4 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowSearch(!showSearch)}
+                className="px-3 py-2 text-xs sm:text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+              >
+                🔍
+              </button>
+              <a 
+                href="/saved" 
+                className="px-3 py-2 text-xs sm:text-sm bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition shadow-sm font-medium"
+              >
+                📚
+              </a>
+              <button
+                onClick={handleSignOut}
+                className="hidden sm:block px-4 py-2 text-sm bg-slate-700 text-white rounded-lg hover:bg-slate-800 transition"
+              >
+                Sign Out
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -277,20 +279,20 @@ export default function FeedClient() {
       {/* Search Panel */}
       {showSearch && (
         <div className="bg-white border-b border-slate-200 shadow-sm">
-          <div className="max-w-4xl mx-auto px-4 py-4 space-y-3">
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3">
             <input
               type="text"
               placeholder="Search cards..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
             />
             <div className="flex gap-2 flex-wrap">
               {["all", "technology", "business", "science", "ai_ml", "design", "startups", "finance", "health"].map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-3 py-1 text-sm rounded-full transition ${
+                  className={`px-2 py-1 text-xs rounded-full transition ${
                     selectedCategory === cat
                       ? "bg-gradient-to-r from-indigo-600 to-orange-500 text-white"
                       : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -306,9 +308,9 @@ export default function FeedClient() {
                   setLoading(true);
                   fetchFeed();
                 }}
-                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition text-sm font-medium"
+                className="px-3 py-2 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition text-xs font-medium"
               >
-                Apply Filters
+                Apply
               </button>
               <button
                 onClick={() => {
@@ -317,7 +319,7 @@ export default function FeedClient() {
                   setLoading(true);
                   fetchFeed();
                 }}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition text-sm"
+                className="px-3 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition text-xs"
               >
                 Clear
               </button>
@@ -326,7 +328,7 @@ export default function FeedClient() {
         </div>
       )}
 
-      <main className="relative h-[calc(100vh-80px)] overflow-hidden">
+      <main className="flex-1 relative overflow-hidden">
         {!hasMoreCards ? (
           <div className="absolute inset-0 flex items-center justify-center p-4">
             <div className="text-center space-y-6 max-w-md">
