@@ -30,6 +30,9 @@ export default function FeedClient() {
   const [newCardsToday, setNewCardsToday] = useState(0); // Track new cards added today
   const [currentStreak, setCurrentStreak] = useState(0); // Track streak
   const [showCelebration, setShowCelebration] = useState(false); // Celebration animation
+  const [showSearch, setShowSearch] = useState(false); // Search modal
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     fetchFeed();
@@ -50,7 +53,14 @@ export default function FeedClient() {
 
   const fetchFeed = async () => {
     try {
-      const res = await fetch("/api/feed?limit=20");
+      let url = "/api/feed?limit=20";
+      
+      // Use search API if filters are active
+      if (searchQuery || selectedCategory !== "all") {
+        url = `/api/search?limit=20&q=${encodeURIComponent(searchQuery)}&category=${selectedCategory}`;
+      }
+      
+      const res = await fetch(url);
       const data = await res.json();
 
       if (data.success) {
@@ -242,6 +252,12 @@ export default function FeedClient() {
             )}
           </div>
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="px-4 py-2 text-sm bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition"
+            >
+              🔍 Search
+            </button>
             <a 
               href="/saved" 
               className="px-4 py-2 text-sm bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition shadow-sm font-medium"
@@ -257,6 +273,58 @@ export default function FeedClient() {
           </div>
         </div>
       </header>
+
+      {/* Search Panel */}
+      {showSearch && (
+        <div className="bg-white border-b border-slate-200 shadow-sm">
+          <div className="max-w-4xl mx-auto px-4 py-4 space-y-3">
+            <input
+              type="text"
+              placeholder="Search cards..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900"
+            />
+            <div className="flex gap-2 flex-wrap">
+              {["all", "technology", "business", "science", "ai_ml", "design", "startups", "finance", "health"].map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-3 py-1 text-sm rounded-full transition ${
+                    selectedCategory === cat
+                      ? "bg-gradient-to-r from-indigo-600 to-orange-500 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {cat === "all" ? "All" : cat.replace("_", "/").replace(/\b\w/g, l => l.toUpperCase())}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setLoading(true);
+                  fetchFeed();
+                }}
+                className="px-4 py-2 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition text-sm font-medium"
+              >
+                Apply Filters
+              </button>
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setSelectedCategory("all");
+                  setLoading(true);
+                  fetchFeed();
+                }}
+                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition text-sm"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="relative h-[calc(100vh-80px)] overflow-hidden">
         {!hasMoreCards ? (
