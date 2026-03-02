@@ -27,6 +27,7 @@ export default function FeedClient() {
   const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
   const [totalCards, setTotalCards] = useState(0); // Track initial total
   const [viewedCount, setViewedCount] = useState(0); // Track how many viewed
+  const [newCardsToday, setNewCardsToday] = useState(0); // Track new cards added today
 
   useEffect(() => {
     fetchFeed();
@@ -40,6 +41,13 @@ export default function FeedClient() {
       if (data.success) {
         setCards(data.data.cards);
         setTotalCards(data.data.cards.length); // Store initial count
+        
+        // Count cards added today
+        const today = new Date().toDateString();
+        const todayCards = data.data.cards.filter((card: ContentCard) => 
+          new Date(card.created_at).toDateString() === today
+        );
+        setNewCardsToday(todayCards.length);
       } else {
         setError(data.error?.message || "Failed to load feed");
       }
@@ -183,9 +191,12 @@ export default function FeedClient() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-orange-500 bg-clip-text text-transparent">
               AccioAI
             </h1>
-            <p className="text-xs text-slate-500">
-              {hasMoreCards ? `${viewedCount + 1} of ${totalCards}` : "All done!"}
-            </p>
+            <div className="flex items-center gap-3 text-xs text-slate-500">
+              <span>{hasMoreCards ? `${viewedCount + 1} of ${totalCards}` : "All done!"}</span>
+              {newCardsToday > 0 && (
+                <span className="text-green-600 font-medium">• {newCardsToday} new today</span>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <a 
@@ -213,17 +224,25 @@ export default function FeedClient() {
                 You&apos;re All Caught Up!
               </h2>
               <p className="text-slate-600 text-lg">
-                {cards.length === 0 
+                {viewedCount === 0 
                   ? "No content matches your interests yet. Try refreshing to fetch new content!"
-                  : "Great job! New personalized content arrives daily at midnight."}
+                  : `You've reviewed ${viewedCount} card${viewedCount === 1 ? '' : 's'} today. New personalized content arrives daily at midnight.`}
               </p>
-              <button
-                onClick={handleRefresh}
-                disabled={loading}
-                className="mt-4 px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? "Fetching new content..." : "Refresh Feed"}
-              </button>
+              <div className="flex flex-col gap-3 mt-6">
+                <button
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-orange-500 text-white rounded-lg hover:from-indigo-700 hover:to-orange-600 transition font-medium shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Fetching new content..." : "🔄 Refresh Feed"}
+                </button>
+                <a
+                  href="/saved"
+                  className="px-6 py-3 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition font-medium"
+                >
+                  📚 View Saved Items
+                </a>
+              </div>
             </div>
           </div>
         ) : (

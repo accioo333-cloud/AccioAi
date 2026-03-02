@@ -55,6 +55,10 @@ export default function SwipeCard({ card, onSwipe, onAction, onClick }: SwipeCar
   const offset = isDragging ? currentX - startX : 0;
   const rotation = offset / 20;
   const opacity = 1 - Math.abs(offset) / 300;
+  
+  // Swipe direction feedback
+  const showLikeOverlay = offset > 50;
+  const showSkipOverlay = offset < -50;
 
   return (
     <div
@@ -73,9 +77,20 @@ export default function SwipeCard({ card, onSwipe, onAction, onClick }: SwipeCar
       onTouchEnd={handleEnd}
     >
       <div 
-        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing border border-slate-200"
+        className="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden cursor-grab active:cursor-grabbing border border-slate-200 relative"
         onClick={onClick}
       >
+        {/* Swipe Feedback Overlays */}
+        {showLikeOverlay && (
+          <div className="absolute inset-0 bg-green-500/20 flex items-center justify-center z-10 pointer-events-none">
+            <div className="text-6xl">👍</div>
+          </div>
+        )}
+        {showSkipOverlay && (
+          <div className="absolute inset-0 bg-red-500/20 flex items-center justify-center z-10 pointer-events-none">
+            <div className="text-6xl">👎</div>
+          </div>
+        )}
         {/* Card Image */}
         {card.image_url && (
           <div className="relative h-48 bg-slate-100 overflow-hidden">
