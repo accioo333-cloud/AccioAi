@@ -68,6 +68,7 @@ export default function FeedClient() {
       // Fetch updated feed
       await fetchFeed();
       setCurrentIndex(0);
+      setViewedCount(0); // Reset counter on refresh
     } catch {
       setError("Failed to refresh feed");
     } finally {
