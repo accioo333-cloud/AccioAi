@@ -133,12 +133,25 @@ export async function POST(request: NextRequest) {
     const itemsPerCategory = 5;
     const itemsToProcess: any[] = [];
     
+    // Get source IDs for each category
     for (const category of categories) {
+      // First get source IDs for this category
+      const { data: sources } = await supabase
+        .from("content_sources")
+        .select("id")
+        .eq("category", category)
+        .eq("is_active", true);
+      
+      if (!sources || sources.length === 0) continue;
+      
+      const sourceIds = sources.map(s => s.id);
+      
+      // Then get unprocessed content from these sources
       const { data: categoryItems } = await supabase
         .from("raw_content")
         .select("*, content_sources(category)")
         .eq("processed", false)
-        .eq("content_sources.category", category)
+        .in("source_id", sourceIds)
         .limit(itemsPerCategory);
       
       if (categoryItems && categoryItems.length > 0) {
@@ -146,13 +159,16 @@ export async function POST(request: NextRequest) {
       }
     }
     
+    logInfo("Items selected for processing", { requestId, runId, count: itemsToProcess.length });
+    
     // If we got less than 20, fill with any unprocessed
     if (itemsToProcess.length < 20) {
+      const processedIds = itemsToProcess.map(i => i.id);
       const { data: fillItems } = await supabase
         .from("raw_content")
         .select("*, content_sources(category)")
         .eq("processed", false)
-        .not("id", "in", `(${itemsToProcess.map(i => i.id).join(",") || "''"})`)
+        .not("id", "in", `(${processedIds.join(",") || "'none'"})`)
         .limit(20 - itemsToProcess.length);
       
       if (fillItems) {
