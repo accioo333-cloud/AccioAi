@@ -73,17 +73,14 @@ export async function POST(request: NextRequest) {
                       interaction_type === 'like' ? 'cards_liked' :
                       interaction_type === 'bookmark' ? 'cards_saved' : 'cards_completed';
     
-    await supabase.rpc('increment_daily_stat', {
-      p_user_id: user.id,
-      p_date: today,
-      p_field: statField,
-    }).catch(() => {
-      // Create if doesn't exist
-      supabase.from('daily_stats').upsert({
-        user_id: user.id,
-        date: today,
-        [statField]: 1,
-      }, { onConflict: 'user_id,date' });
+    // Upsert daily stats
+    await supabase.from('daily_stats').upsert({
+      user_id: user.id,
+      date: today,
+      [statField]: 1,
+    }, { 
+      onConflict: 'user_id,date',
+      ignoreDuplicates: false 
     });
 
     // Update streak
