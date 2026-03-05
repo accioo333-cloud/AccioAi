@@ -15,7 +15,9 @@ export async function POST(request: NextRequest) {
   logInfo("Automation run started", { requestId });
 
   // Check for CRON secret bypass
-  const cronSecret = request.headers.get("x-cron-secret");
+  // Vercel Cron sends: Authorization: Bearer <CRON_SECRET>
+  const cronSecret = request.headers.get("x-cron-secret") 
+    || request.headers.get("authorization")?.replace("Bearer ", "");
   const expectedSecret = process.env.CRON_SECRET;
 
   let supabase;
