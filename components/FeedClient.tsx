@@ -26,7 +26,12 @@ export default function FeedClient() {
   const [error, setError] = useState("");
   const [selectedCard, setSelectedCard] = useState<ContentCard | null>(null);
   const [totalCards, setTotalCards] = useState(0); // Track initial total
-  const [viewedCount, setViewedCount] = useState(0); // Track how many viewed
+  const [viewedCount, setViewedCount] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return parseInt(sessionStorage.getItem('accio_viewed') || '0');
+    }
+    return 0;
+  });
   const [newCardsToday, setNewCardsToday] = useState(0); // Track new cards added today
   const [currentStreak, setCurrentStreak] = useState(0); // Track streak
   const [showCelebration, setShowCelebration] = useState(false); // Celebration animation
@@ -38,6 +43,11 @@ export default function FeedClient() {
     fetchFeed();
     fetchStats();
   }, []);
+
+  // Persist viewedCount across navigation
+  useEffect(() => {
+    sessionStorage.setItem('accio_viewed', viewedCount.toString());
+  }, [viewedCount]);
 
   const fetchStats = async () => {
     try {
@@ -65,7 +75,9 @@ export default function FeedClient() {
 
       if (data.success) {
         setCards(data.data.cards);
-        setTotalCards(data.data.cards.length); // Store initial count
+        // Total = current cards + already viewed this session
+        const stored = parseInt(sessionStorage.getItem('accio_viewed') || '0');
+        setTotalCards(data.data.cards.length + stored);
         
         // Count cards added today
         const today = new Date().toDateString();
@@ -102,6 +114,7 @@ export default function FeedClient() {
       await fetchFeed();
       setCurrentIndex(0);
       setViewedCount(0); // Reset counter on refresh
+      sessionStorage.setItem('accio_viewed', '0');
     } catch {
       setError("Failed to refresh feed");
     } finally {

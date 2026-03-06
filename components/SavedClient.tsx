@@ -127,12 +127,24 @@ export default function SavedClient() {
                   <span>{card.estimated_time_minutes} min read</span>
                 </div>
                 
-                <button
-                  onClick={() => handleRemove(card.id)}
-                  className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
-                >
-                  Remove
-                </button>
+                <div className="flex items-center gap-2">
+                  {card.source_url && (
+                    <a
+                      href={card.source_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition font-medium"
+                    >
+                      🔗 Read
+                    </a>
+                  )}
+                  <button
+                    onClick={() => handleRemove(card.id)}
+                    className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
             </div>
           ))}
